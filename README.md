@@ -162,5 +162,3 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 
-mandei o ultimo script que voce me mandou so para relembrar
-
