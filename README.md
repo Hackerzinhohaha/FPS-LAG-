@@ -28,7 +28,9 @@ local Translation = {
         NOTIF_ULTRALAG_ON = "ULTRA LAG ATIVADO!\nEquipando/desquipando todas as suas Tools!",
         NOTIF_ULTRALAG_OFF = "ULTRA LAG DESATIVADO!",
         BTN_US = "🇺🇸 Estados Unidos",
-        BTN_BR = "🇧🇷 Brasil"
+        BTN_BR = "🇧🇷 Brasil",
+        CLOSE = "Fechar",
+        OPEN = "Abrir GUI"
     },
     US = {
         TITLE = "🌟 Equip the Tool",
@@ -50,7 +52,9 @@ local Translation = {
         NOTIF_ULTRALAG_ON = "ULTRA LAG ENABLED!\nEquipping/unequipping all your Tools!",
         NOTIF_ULTRALAG_OFF = "ULTRA LAG DISABLED!",
         BTN_US = "🇺🇸 United States",
-        BTN_BR = "🇧🇷 Brazil"
+        BTN_BR = "🇧🇷 Brazil",
+        CLOSE = "Close",
+        OPEN = "Open GUI"
     }
 }
 local function T(msg) return Language and Translation[Language][msg] or msg end
@@ -134,7 +138,7 @@ local function showNotification(msg, duration)
     notifFrame:Destroy()
 end
 
---== Funções principais (mesmo das versões anteriores, mantidas por clareza) ==--
+--== Funções principais ==--
 local function stripCharacter()
     local character = LocalPlayer.Character
     if not character then return end
@@ -231,8 +235,8 @@ if success and hui then ScreenGui.Parent = hui else ScreenGui.Parent = game:GetS
 
 --== Seletor de idioma inicial ==--
 local LangSelectFrame = Instance.new("Frame")
-LangSelectFrame.Size = UDim2.new(0, 400, 0, 200)
-LangSelectFrame.Position = UDim2.new(0.5, -200, 0.32, 0)
+LangSelectFrame.Size = UDim2.new(0, 340, 0, 170)
+LangSelectFrame.Position = UDim2.new(0.5, -170, 0.32, 0)
 LangSelectFrame.AnchorPoint = Vector2.new(0.5,0)
 LangSelectFrame.BackgroundColor3 = Color3.fromRGB(33,36,43)
 LangSelectFrame.BorderSizePixel = 0
@@ -249,23 +253,23 @@ LangShadow.ZIndex = LangSelectFrame.ZIndex - 1
 LangShadow.Parent = LangSelectFrame
 
 local LangTitle = Instance.new("TextLabel")
-LangTitle.Size = UDim2.new(1,0,0,60)
-LangTitle.Position = UDim2.new(0,0,0,18)
+LangTitle.Size = UDim2.new(1,0,0,50)
+LangTitle.Position = UDim2.new(0,0,0,10)
 LangTitle.BackgroundTransparency = 1
 LangTitle.Text = "🌎 Choose your language\n🌎 Escolha seu idioma"
-LangTitle.Font = Enum.Font.GothamBlack
-LangTitle.TextSize = 24
+LangTitle.Font = Enum.Font.GothamBold
+LangTitle.TextSize = 20
 LangTitle.TextColor3 = Color3.fromRGB(240,240,240)
 LangTitle.TextStrokeTransparency = 0.77
 LangTitle.TextWrapped = true
 LangTitle.Parent = LangSelectFrame
 
 local BtnBR = Instance.new("TextButton")
-BtnBR.Size = UDim2.new(0.44, 0, 0, 58)
-BtnBR.Position = UDim2.new(0.06, 0, 0.57, 0)
+BtnBR.Size = UDim2.new(0.44, 0, 0, 48)
+BtnBR.Position = UDim2.new(0.06, 0, 0.55, 0)
 BtnBR.Text = Translation.BR.BTN_BR
 BtnBR.Font = Enum.Font.GothamBlack
-BtnBR.TextSize = 20
+BtnBR.TextSize = 18
 BtnBR.TextColor3 = Color3.fromRGB(255,255,255)
 BtnBR.BackgroundColor3 = Color3.fromRGB(39, 174, 96)
 BtnBR.BorderSizePixel = 0
@@ -273,82 +277,128 @@ BtnBR.AutoButtonColor = true
 BtnBR.Parent = LangSelectFrame
 
 local BtnUS = Instance.new("TextButton")
-BtnUS.Size = UDim2.new(0.44, 0, 0, 58)
-BtnUS.Position = UDim2.new(0.50, 0, 0.57, 0)
+BtnUS.Size = UDim2.new(0.44, 0, 0, 48)
+BtnUS.Position = UDim2.new(0.50, 0, 0.55, 0)
 BtnUS.Text = Translation.US.BTN_US
 BtnUS.Font = Enum.Font.GothamBlack
-BtnUS.TextSize = 20
+BtnUS.TextSize = 18
 BtnUS.TextColor3 = Color3.fromRGB(255,255,255)
 BtnUS.BackgroundColor3 = Color3.fromRGB(41, 128, 185)
 BtnUS.BorderSizePixel = 0
 BtnUS.AutoButtonColor = true
 BtnUS.Parent = LangSelectFrame
 
+--== Função para mostrar/ocultar a GUI principal ==--
+local MainFrame = nil
+local OpenButton = nil
+
 local function showMainGUI(lang)
     Language = lang
     LangSelectFrame:Destroy()
 
-    -- Frame principal
-    local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(0, 540, 0, 530)
-    Frame.Position = UDim2.new(0.5, -270, 0.17, 0)
-    Frame.BackgroundColor3 = Color3.fromRGB(28, 29, 36)
-    Frame.BorderSizePixel = 0
-    Frame.AnchorPoint = Vector2.new(0.5,0)
-    Frame.Parent = ScreenGui
-    Frame.Active = true
-    Frame.Draggable = false
+    -- Frame principal (MENOR)
+    MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0, 340, 0, 370)
+    MainFrame.Position = UDim2.new(0.5, -170, 0.26, 0)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(28, 29, 36)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.AnchorPoint = Vector2.new(0.5,0)
+    MainFrame.Parent = ScreenGui
+    MainFrame.Active = true
+    MainFrame.Draggable = false
+    MainFrame.Visible = true
 
     local Shadow = Instance.new("ImageLabel")
-    Shadow.Size = UDim2.new(1, 44, 1, 44)
-    Shadow.Position = UDim2.new(0, -22, 0, -22)
+    Shadow.Size = UDim2.new(1, 24, 1, 24)
+    Shadow.Position = UDim2.new(0, -12, 0, -12)
     Shadow.BackgroundTransparency = 1
     Shadow.Image = "rbxassetid://1316045217"
     Shadow.ImageTransparency = 0.48
-    Shadow.ZIndex = Frame.ZIndex - 1
-    Shadow.Parent = Frame
+    Shadow.ZIndex = MainFrame.ZIndex - 1
+    Shadow.Parent = MainFrame
+
+    -- Botão de Fechar
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Size = UDim2.new(0, 32, 0, 32)
+    CloseBtn.Position = UDim2.new(1, -38, 0, 8)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
+    CloseBtn.Text = "✕"
+    CloseBtn.TextColor3 = Color3.new(1,1,1)
+    CloseBtn.TextSize = 22
+    CloseBtn.Font = Enum.Font.GothamBlack
+    CloseBtn.BorderSizePixel = 0
+    CloseBtn.ZIndex = 2
+    CloseBtn.AutoButtonColor = true
+    CloseBtn.Parent = MainFrame
+
+    CloseBtn.MouseButton1Click:Connect(function()
+        MainFrame.Visible = false
+        if OpenButton then
+            OpenButton.Visible = true
+        end
+    end)
+
+    -- Botão de abrir (fica no canto inferior esquerdo)
+    if not OpenButton then
+        OpenButton = Instance.new("TextButton")
+        OpenButton.Size = UDim2.new(0, 135, 0, 38)
+        OpenButton.Position = UDim2.new(0, 16, 1, -56)
+        OpenButton.AnchorPoint = Vector2.new(0,0)
+        OpenButton.BackgroundColor3 = Color3.fromRGB(41, 128, 185)
+        OpenButton.Text = "🌟 " .. T("OPEN")
+        OpenButton.TextColor3 = Color3.new(1,1,1)
+        OpenButton.TextSize = 16
+        OpenButton.Font = Enum.Font.GothamBold
+        OpenButton.BorderSizePixel = 0
+        OpenButton.Visible = false
+        OpenButton.Parent = ScreenGui
+        OpenButton.MouseButton1Click:Connect(function()
+            MainFrame.Visible = true
+            OpenButton.Visible = false
+        end)
+    end
 
     -- Topo
     local TopBar = Instance.new("Frame")
-    TopBar.Size = UDim2.new(1,0,0,66)
+    TopBar.Size = UDim2.new(1,0,0,54)
     TopBar.Position = UDim2.new(0,0,0,0)
     TopBar.BackgroundTransparency = 1
-    TopBar.Parent = Frame
+    TopBar.Parent = MainFrame
 
     local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1,0,0,42)
-    Title.Position = UDim2.new(0,0,0,0)
+    Title.Size = UDim2.new(1,0,0,36)
+    Title.Position = UDim2.new(0,0,0,4)
     Title.BackgroundTransparency = 1
     Title.Text = T("TITLE")
     Title.Font = Enum.Font.GothamBlack
-    Title.TextSize = 28
+    Title.TextSize = 20
     Title.TextColor3 = Color3.fromRGB(225, 255, 180)
     Title.TextStrokeTransparency = 0.76
     Title.TextWrapped = true
     Title.Parent = TopBar
 
     local Line = Instance.new("Frame")
-    Line.Size = UDim2.new(0.92,0,0,3)
-    Line.Position = UDim2.new(0.04,0,0,54)
+    Line.Size = UDim2.new(0.9,0,0,2)
+    Line.Position = UDim2.new(0.05,0,0,47)
     Line.BackgroundColor3 = Color3.fromRGB(57,200,110)
     Line.BorderSizePixel = 0
     Line.Parent = TopBar
 
     -- Botões principais
-    local y = 0.17
-    local y_space = 0.118
+    local y = 0.19
+    local y_space = 0.15
 
     local ToggleButton = Instance.new("TextButton")
-    ToggleButton.Size = UDim2.new(0.8,0,0,56)
-    ToggleButton.Position = UDim2.new(0.1,0,y,0)
+    ToggleButton.Size = UDim2.new(0.82,0,0,38)
+    ToggleButton.Position = UDim2.new(0.09,0,y,0)
     ToggleButton.Font = Enum.Font.GothamBlack
-    ToggleButton.TextSize = 23
+    ToggleButton.TextSize = 16
     ToggleButton.TextColor3 = Color3.fromRGB(255,255,255)
     ToggleButton.BorderSizePixel = 0
     ToggleButton.AutoButtonColor = false
     ToggleButton.Text = T("ACTIVATE")
     ToggleButton.BackgroundColor3 = Color3.fromRGB(39, 174, 96)
-    ToggleButton.Parent = Frame
+    ToggleButton.Parent = MainFrame
 
     local function updateToggleButton()
         ToggleButton.Text = EquipLoop and T("DEACTIVATE") or T("ACTIVATE")
@@ -380,14 +430,14 @@ local function showMainGUI(lang)
     end)
 
     local LoopModeButton = Instance.new("TextButton")
-    LoopModeButton.Size = UDim2.new(0.8,0,0,45)
-    LoopModeButton.Position = UDim2.new(0.1,0,y + y_space,0)
+    LoopModeButton.Size = UDim2.new(0.82,0,0,32)
+    LoopModeButton.Position = UDim2.new(0.09,0,y + y_space,0)
     LoopModeButton.Font = Enum.Font.GothamBold
-    LoopModeButton.TextSize = 18
+    LoopModeButton.TextSize = 14
     LoopModeButton.TextColor3 = Color3.fromRGB(255,255,255)
     LoopModeButton.BorderSizePixel = 0
     LoopModeButton.AutoButtonColor = false
-    LoopModeButton.Parent = Frame
+    LoopModeButton.Parent = MainFrame
 
     local function updateLoopModeButton()
         if LoopMode == "safe" then
@@ -431,16 +481,16 @@ local function showMainGUI(lang)
     LoopModeButton.MouseLeave:Connect(updateLoopModeButton)
 
     local UltraLagButton = Instance.new("TextButton")
-    UltraLagButton.Size = UDim2.new(0.8,0,0,45)
-    UltraLagButton.Position = UDim2.new(0.1,0,y + y_space*2 + 0.009,0)
+    UltraLagButton.Size = UDim2.new(0.82,0,0,32)
+    UltraLagButton.Position = UDim2.new(0.09,0,y + y_space*2 + 0.01,0)
     UltraLagButton.Font = Enum.Font.GothamBlack
-    UltraLagButton.TextSize = 18
+    UltraLagButton.TextSize = 14
     UltraLagButton.Text = T("ULTRALAG")
     UltraLagButton.TextColor3 = Color3.fromRGB(255,255,255)
     UltraLagButton.BorderSizePixel = 0
     UltraLagButton.AutoButtonColor = false
     UltraLagButton.BackgroundColor3 = Color3.fromRGB(231, 76, 60)
-    UltraLagButton.Parent = Frame
+    UltraLagButton.Parent = MainFrame
 
     local function updateUltraLagButton()
         if UltraLagLoop then
@@ -477,18 +527,18 @@ local function showMainGUI(lang)
 
     -- COUNTER GUI
     local CounterFrame = Instance.new("Frame")
-    CounterFrame.Size = UDim2.new(0.8,0,0,45)
-    CounterFrame.Position = UDim2.new(0.1,0,0.63,0)
+    CounterFrame.Size = UDim2.new(0.82,0,0,32)
+    CounterFrame.Position = UDim2.new(0.09,0,0.62,0)
     CounterFrame.BackgroundTransparency = 0.35
     CounterFrame.BackgroundColor3 = Color3.fromRGB(40, 44, 54)
     CounterFrame.BorderSizePixel = 0
-    CounterFrame.Parent = Frame
+    CounterFrame.Parent = MainFrame
 
     local CounterLabel = Instance.new("TextLabel")
     CounterLabel.Size = UDim2.new(1,0,1,0)
     CounterLabel.BackgroundTransparency = 1
     CounterLabel.Font = Enum.Font.GothamSemibold
-    CounterLabel.TextSize = 19
+    CounterLabel.TextSize = 14
     CounterLabel.TextColor3 = Color3.fromRGB(180, 230, 170)
     CounterLabel.TextStrokeTransparency = 0.85
     CounterLabel.Text = T("COUNTER"):format(0, 0)
@@ -499,18 +549,18 @@ local function showMainGUI(lang)
     end
 
     local PerfFrame = Instance.new("Frame")
-    PerfFrame.Size = UDim2.new(0.8,0,0,38)
-    PerfFrame.Position = UDim2.new(0.1,0,0.73,0)
+    PerfFrame.Size = UDim2.new(0.82,0,0,26)
+    PerfFrame.Position = UDim2.new(0.09,0,0.72,0)
     PerfFrame.BackgroundTransparency = 0.5
     PerfFrame.BackgroundColor3 = Color3.fromRGB(33,39,48)
     PerfFrame.BorderSizePixel = 0
-    PerfFrame.Parent = Frame
+    PerfFrame.Parent = MainFrame
 
     local PerfLabel = Instance.new("TextLabel")
     PerfLabel.Size = UDim2.new(1,0,1,0)
     PerfLabel.BackgroundTransparency = 1
     PerfLabel.Font = Enum.Font.GothamSemibold
-    PerfLabel.TextSize = 17
+    PerfLabel.TextSize = 13
     PerfLabel.TextColor3 = Color3.fromRGB(155, 200, 255)
     PerfLabel.TextStrokeTransparency = 0.85
     PerfLabel.Text = T("PINGFPS"):format(0, 0)
@@ -534,27 +584,27 @@ local function showMainGUI(lang)
 
     -- Tooltip
     local Tooltip = Instance.new("TextLabel")
-    Tooltip.Size = UDim2.new(1,0,0,28)
+    Tooltip.Size = UDim2.new(1,0,0,18)
     Tooltip.Position = UDim2.new(0,0,0.91,0)
     Tooltip.BackgroundTransparency = 1
     Tooltip.Text = T("TOOLTIP")
     Tooltip.Font = Enum.Font.Gotham
-    Tooltip.TextSize = 17
+    Tooltip.TextSize = 13
     Tooltip.TextColor3 = Color3.fromRGB(180,255,180)
     Tooltip.TextStrokeTransparency = 0.92
-    Tooltip.Parent = Frame
+    Tooltip.Parent = MainFrame
 
     -- Créditos
     local Credits = Instance.new("TextLabel")
-    Credits.Size = UDim2.new(1,0,0,18)
+    Credits.Size = UDim2.new(1,0,0,15)
     Credits.Position = UDim2.new(0,0,0.96,0)
     Credits.BackgroundTransparency = 1
     Credits.Text = T("CREDITS")
     Credits.Font = Enum.Font.GothamBold
-    Credits.TextSize = 16
+    Credits.TextSize = 13
     Credits.TextColor3 = Color3.fromRGB(255,0,0)
     Credits.TextStrokeTransparency = 0.8
-    Credits.Parent = Frame
+    Credits.Parent = MainFrame
     spawn(function()
         local hue = 0
         while Credits and Credits.Parent do
@@ -568,7 +618,7 @@ local function showMainGUI(lang)
     Title.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             Dragging = true
-            DragOffset = Vector2.new(input.Position.X - Frame.AbsolutePosition.X, input.Position.Y - Frame.AbsolutePosition.Y)
+            DragOffset = Vector2.new(input.Position.X - MainFrame.AbsolutePosition.X, input.Position.Y - MainFrame.AbsolutePosition.Y)
         end
     end)
     Title.InputEnded:Connect(function(input)
@@ -580,7 +630,7 @@ local function showMainGUI(lang)
         if Dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local newX = input.Position.X - DragOffset.X
             local newY = input.Position.Y - DragOffset.Y
-            Frame.Position = UDim2.new(0, math.clamp(newX, 0, workspace.CurrentCamera.ViewportSize.X-Frame.Size.X.Offset), 0, math.clamp(newY, 0, workspace.CurrentCamera.ViewportSize.Y-Frame.Size.Y.Offset))
+            MainFrame.Position = UDim2.new(0, math.clamp(newX, 0, workspace.CurrentCamera.ViewportSize.X-MainFrame.Size.X.Offset), 0, math.clamp(newY, 0, workspace.CurrentCamera.ViewportSize.Y-MainFrame.Size.Y.Offset))
         end
     end)
 end
