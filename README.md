@@ -114,7 +114,6 @@ local function toggleToolLoop(tool)
     if not humanoid then return end
 
     if LoopMode == "ultra" then
-        -- ULTRA MODE: máximo desempenho, sem nenhuma espera, usando RunService
         local connection
         connection = RunService.RenderStepped:Connect(function()
             if not EquipLoop then
@@ -129,7 +128,6 @@ local function toggleToolLoop(tool)
             EquipCount = EquipCount + 1
             _G.UpdateCounter()
         end)
-        -- Retorna para não rodar o loop normal
         return
     end
 
@@ -393,6 +391,33 @@ spawn(function()
     end
 end)
 RunService.RenderStepped:Connect(function() frameCounter = frameCounter + 1 end)
+
+-- PLAYER COUNTER GUI
+local PlayerFrame = Instance.new("Frame")
+PlayerFrame.Size = UDim2.new(0.8, 0, 0, 34)
+PlayerFrame.Position = UDim2.new(0.1, 0, 0.80, 0) -- abaixo do PerfFrame
+PlayerFrame.BackgroundTransparency = 0.6
+PlayerFrame.BackgroundColor3 = Color3.fromRGB(24,24,28)
+PlayerFrame.BorderSizePixel = 0
+PlayerFrame.Parent = Frame
+
+local PlayerLabel = Instance.new("TextLabel")
+PlayerLabel.Size = UDim2.new(1,0,1,0)
+PlayerLabel.BackgroundTransparency = 1
+PlayerLabel.Font = Enum.Font.GothamSemibold
+PlayerLabel.TextSize = 16
+PlayerLabel.TextColor3 = Color3.fromRGB(200,255,200)
+PlayerLabel.TextStrokeTransparency = 0.85
+PlayerLabel.Text = "Players: ..."
+PlayerLabel.Parent = PlayerFrame
+
+local function updatePlayerCount()
+    PlayerLabel.Text = ("Players: %d"):format(#Players:GetPlayers())
+end
+-- atualiza agora e quando alguém entrar/sair
+updatePlayerCount()
+Players.PlayerAdded:Connect(updatePlayerCount)
+Players.PlayerRemoving:Connect(updatePlayerCount)
 
 -- Tooltip para instruções
 local Tooltip = Instance.new("TextLabel")
