@@ -107,9 +107,6 @@ local function toggleToolLoop(tool)
     end
 end
 
--- ===============================================================
--- AQUI ESTÁ A FUNÇÃO CORRIGIDA
--- ===============================================================
 local function runAutoEquip()
     local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
     stripCharacter()
@@ -120,7 +117,6 @@ local function runAutoEquip()
     
     if not tool then
         showNotification("PEGUE O ITEM NA MÃO PARA FUNCIONAR", 2.2)
-        -- A linha "EquipLoop = false" foi REMOVIDA daqui. Isso conserta o problema.
         return
     end
 
@@ -261,12 +257,28 @@ end
 updateFPSDevourerButton()
 
 FPSDevourerButton.MouseButton1Click:Connect(function()
-    EquipLoop = not EquipLoop
-    if EquipLoop then
-        task.spawn(runAutoEquip)
+    if not EquipLoop then -- Se está desligado, vamos tentar LIGAR.
+        local character = LocalPlayer.Character
+        local tool = character and character:FindFirstChildWhichIsA("Tool")
+
+        if tool then
+            -- CONDIÇÃO ATENDIDA: O jogador tem um item. Agora sim podemos ativar.
+            EquipLoop = true
+            task.spawn(runAutoEquip)
+        else
+            -- CONDIÇÃO FALHOU: O jogador NÃO tem um item.
+            showNotification("PEGUE O ITEM NA MÃO PARA FUNCIONAR", 2.2)
+            -- Não fazemos nada com a variável EquipLoop, então o botão continuará vermelho.
+        end
+        
+    else -- Se já estava ligado, o único caminho é DESLIGAR.
+        EquipLoop = false
     end
+
+    -- No final, atualizamos a cor do botão com base no resultado da lógica acima.
     updateFPSDevourerButton()
 end)
+
 
 --== LoopMode Button ==--
 local LoopModeButton = Instance.new("TextButton")
