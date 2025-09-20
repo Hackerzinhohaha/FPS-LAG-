@@ -1,4 +1,3 @@
-
 --== Serviços ==--
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -87,7 +86,7 @@ local function toggleToolLoop(tool)
             end
             humanoid:EquipTool(tool)
             EquipCount += 1
-            _G.UpdateCounter()
+            if _G.UpdateCounter then _G.UpdateCounter() end
         end)
         return
     end
@@ -99,7 +98,7 @@ local function toggleToolLoop(tool)
         end
         humanoid:EquipTool(tool)
         EquipCount += 1
-        _G.UpdateCounter()
+        if _G.UpdateCounter then _G.UpdateCounter() end
         if LoopMode == "safe" then
             task.wait(0.1)
         elseif LoopMode == "turbo" then
@@ -108,18 +107,23 @@ local function toggleToolLoop(tool)
     end
 end
 
+-- ===============================================================
+-- AQUI ESTÁ A FUNÇÃO CORRIGIDA
+-- ===============================================================
 local function runAutoEquip()
     local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
     stripCharacter()
     repeat task.wait() until character:FindFirstChild("HumanoidRootPart")
     EquipCount, UnequipCount = 0, 0
-    _G.UpdateCounter()
+    if _G.UpdateCounter then _G.UpdateCounter() end
     local tool = character:FindFirstChildWhichIsA("Tool")
+    
     if not tool then
-        showNotification("PEGUE O ITEM NA MÃO PARA FUNCIONAR", 2.2) -- TEXTO ALTERADO AQUI
-        EquipLoop = false
+        showNotification("PEGUE O ITEM NA MÃO PARA FUNCIONAR", 2.2)
+        -- A linha "EquipLoop = false" foi REMOVIDA daqui. Isso conserta o problema.
         return
     end
+
     task.spawn(function()
         toggleToolLoop(tool)
     end)
@@ -158,7 +162,7 @@ ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 --== Main Frame ==--
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 200, 0, 240) -- Diminui de 320 para 240
+Frame.Size = UDim2.new(0, 200, 0, 240)
 Frame.Position = LastPosition
 Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Frame.BackgroundTransparency = 0.2
@@ -245,10 +249,9 @@ FPSDevourerButton.Position = UDim2.new(0.075,0,0.20,0)
 FPSDevourerButton.Parent = Frame
 styleAsPixelButton(FPSDevourerButton, "FPS DEVOURER")
 
--- CORREÇÃO: Manter o texto sempre visível
 local function updateFPSDevourerButton()
     if EquipLoop then
-        FPSDevourerButton.Text = "FPS DEVOURER"  -- Mantém o texto
+        FPSDevourerButton.Text = "FPS DEVOURER"
         FPSDevourerButton.BackgroundColor3 = greenColor
     else
         FPSDevourerButton.Text = "FPS DEVOURER"
@@ -260,10 +263,7 @@ updateFPSDevourerButton()
 FPSDevourerButton.MouseButton1Click:Connect(function()
     EquipLoop = not EquipLoop
     if EquipLoop then
-        task.spawn(function()
-            runAutoEquip()
-            updateFPSDevourerButton()
-        end)
+        task.spawn(runAutoEquip)
     end
     updateFPSDevourerButton()
 end)
@@ -302,10 +302,9 @@ ProtectionModeButton.Position = UDim2.new(0.075, 0, 0.56, 0)
 ProtectionModeButton.Parent = Frame
 styleAsPixelButton(ProtectionModeButton, "PROTEÇÃO")
 
--- CORREÇÃO: Manter o texto sempre visível
 local function updateProtectionButton()
     if ProtectionModeActive then
-        ProtectionModeButton.Text = "PROTEÇÃO"  -- Mantém o texto original
+        ProtectionModeButton.Text = "PROTEÇÃO"
         ProtectionModeButton.BackgroundColor3 = greenColor
     else
         ProtectionModeButton.Text = "PROTEÇÃO"
@@ -341,10 +340,9 @@ styleAsPixelButton(SafeModeButton, "SAFE MODE")
 local SafeModeActive = false
 local SafeModePart = nil
 
--- CORREÇÃO: Manter o texto sempre visível
 local function updateSafeModeButton()
     if SafeModeActive then
-        SafeModeButton.Text = "SAFE MODE"  -- Mantém o texto original
+        SafeModeButton.Text = "SAFE MODE"
         SafeModeButton.BackgroundColor3 = greenColor
     else
         SafeModeButton.Text = "SAFE MODE"
