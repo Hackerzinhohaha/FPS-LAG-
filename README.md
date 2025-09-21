@@ -150,6 +150,82 @@ local function restorePlayerAppearance(player)
     PlayerAppearanceBackup[player.UserId] = nil
 end
 
+-- ========================================================= --
+-- [[ LÓGICA DA FUNÇÃO FLY (Exatamente como você pediu) ]] --
+-- ========================================================= --
+local isFlying = false
+local floor = nil
+local connection = nil
+local flyRaycastParams = nil
+local flySpeed = 1.5
+local slowWalkSpeed = 10
+local flyOriginalWalkSpeed = 16
+
+local function toggleFly()
+    isFlying = not isFlying
+    local character = LocalPlayer.Character
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+
+    if isFlying then
+        if not humanoid or not rootPart then isFlying = false; return end
+        showNotification("Fly Ativado!", 1.5)
+        
+        flyOriginalWalkSpeed = humanoid.WalkSpeed
+        humanoid.WalkSpeed = slowWalkSpeed
+
+        local platformThickness = 0.8
+
+        floor = Instance.new("Part")
+        floor.Name = "ChaoVoador"
+        floor.Size = Vector3.new(6, platformThickness, 6)
+        floor.Material = Enum.Material.Neon
+        floor.Anchored = true
+        floor.CanCollide = true
+        
+        local feetOffset = 3 + (platformThickness / 2)
+        floor.CFrame = rootPart.CFrame - Vector3.new(0, feetOffset, 0)
+        floor.Parent = workspace
+
+        flyRaycastParams = RaycastParams.new()
+        flyRaycastParams.FilterType = Enum.RaycastFilterType.Exclude
+        flyRaycastParams.FilterDescendantsInstances = {character, floor}
+
+        connection = RunService.RenderStepped:Connect(function()
+            local char = LocalPlayer.Character
+            local currentRootPart = char and char:FindFirstChild("HumanoidRootPart")
+            if not isFlying or not currentRootPart or not floor or not floor.Parent then
+                toggleFly()
+                return
+            end
+
+            local canMoveUp = true
+            local rayOrigin = floor.Position + Vector3.new(0, floor.Size.Y / 2, 0)
+            local rayDirection = Vector3.new(0, 1.5, 0)
+            local result = workspace:Raycast(rayOrigin, rayDirection, flyRaycastParams)
+            if result then canMoveUp = false end
+
+            local hue = tick() % 6 / 6
+            floor.Color = Color3.fromHSV(hue, 1, 1)
+
+            local playerPos = currentRootPart.Position
+            local newFloorY = floor.Position.Y
+            if canMoveUp then newFloorY = newFloorY + (flySpeed * 0.1) end
+            floor.CFrame = CFrame.new(playerPos.X, newFloorY, playerPos.Z)
+
+            if playerPos.Y < floor.Position.Y then
+                currentRootPart.CFrame = CFrame.new(playerPos.X, floor.Position.Y + 4, playerPos.Z)
+            end
+        end)
+    else
+        showNotification("Fly Desativado!", 1.5)
+        if humanoid then humanoid.WalkSpeed = flyOriginalWalkSpeed end
+
+        if connection then connection:Disconnect(); connection = nil end
+        if floor then floor:Destroy(); floor = nil end
+    end
+end
+
 --== GUI ==--
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "AutoToolEquipMozartMobile"
@@ -158,7 +234,7 @@ ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 --== Main Frame ==--
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 200, 0, 240)
+Frame.Size = UDim2.new(0, 200, 0, 250) -- << GUI MENOR
 Frame.Position = LastPosition
 Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Frame.BackgroundTransparency = 0.2
@@ -241,61 +317,51 @@ end
 
 --== FPS DEVOURER Button ==--
 local FPSDevourerButton = Instance.new("TextButton")
-FPSDevourerButton.Position = UDim2.new(0.075,0,0.20,0)
+FPSDevourerButton.Position = UDim2.new(0.075, 0, 0.18, 0) -- << Posição ajustada
 FPSDevourerButton.Parent = Frame
 styleAsPixelButton(FPSDevourerButton, "FPS DEVOURER")
 
 local function updateFPSDevourerButton()
     if EquipLoop then
-        FPSDevourerButton.Text = "FPS DEVOURER"
         FPSDevourerButton.BackgroundColor3 = greenColor
     else
-        FPSDevourerButton.Text = "FPS DEVOURER"
         FPSDevourerButton.BackgroundColor3 = redColor
     end
 end
 updateFPSDevourerButton()
 
 FPSDevourerButton.MouseButton1Click:Connect(function()
-    if not EquipLoop then -- Se está desligado, vamos tentar LIGAR.
+    if not EquipLoop then
         local character = LocalPlayer.Character
         local tool = character and character:FindFirstChildWhichIsA("Tool")
-
         if tool then
-            -- CONDIÇÃO ATENDIDA: O jogador tem um item. Agora sim podemos ativar.
             EquipLoop = true
             task.spawn(runAutoEquip)
         else
-            -- CONDIÇÃO FALHOU: O jogador NÃO tem um item.
             showNotification("PEGUE O ITEM NA MÃO PARA FUNCIONAR", 2.2)
-            -- Não fazemos nada com a variável EquipLoop, então o botão continuará vermelho.
         end
-        
-    else -- Se já estava ligado, o único caminho é DESLIGAR.
+    else
         EquipLoop = false
     end
-
-    -- No final, atualizamos a cor do botão com base no resultado da lógica acima.
     updateFPSDevourerButton()
 end)
 
-
 --== LoopMode Button ==--
 local LoopModeButton = Instance.new("TextButton")
-LoopModeButton.Position = UDim2.new(0.075,0,0.38,0)
+LoopModeButton.Position = UDim2.new(0.075, 0, 0.33, 0) -- << Posição ajustada
 LoopModeButton.Parent = Frame
 styleAsPixelButton(LoopModeButton, "MODO: SAFE")
 
 local function updateLoopModeButton()
     if LoopMode == "safe" then
         LoopModeButton.Text = "MODO: SAFE"
-        LoopModeButton.BackgroundColor3 = Color3.fromRGB(25, 170, 25) -- Verde
+        LoopModeButton.BackgroundColor3 = Color3.fromRGB(25, 170, 25)
     elseif LoopMode == "turbo" then
         LoopModeButton.Text = "MODO: TURBO"
-        LoopModeButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0) -- Laranja
+        LoopModeButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
     else -- ultra
         LoopModeButton.Text = "MODO: ULTRA"
-        LoopModeButton.BackgroundColor3 = Color3.fromRGB(220, 20, 20) -- Vermelho mais forte
+        LoopModeButton.BackgroundColor3 = Color3.fromRGB(220, 20, 20)
     end
 end
 updateLoopModeButton()
@@ -310,16 +376,14 @@ end)
 
 --== Protection Mode Button ==--
 local ProtectionModeButton = Instance.new("TextButton")
-ProtectionModeButton.Position = UDim2.new(0.075, 0, 0.56, 0)
+ProtectionModeButton.Position = UDim2.new(0.075, 0, 0.48, 0) -- << Posição ajustada
 ProtectionModeButton.Parent = Frame
 styleAsPixelButton(ProtectionModeButton, "PROTEÇÃO")
 
 local function updateProtectionButton()
     if ProtectionModeActive then
-        ProtectionModeButton.Text = "PROTEÇÃO"
         ProtectionModeButton.BackgroundColor3 = greenColor
     else
-        ProtectionModeButton.Text = "PROTEÇÃO"
         ProtectionModeButton.BackgroundColor3 = redColor
     end
 end
@@ -345,7 +409,7 @@ end)
 
 --== Safe Mode Button ==--
 local SafeModeButton = Instance.new("TextButton")
-SafeModeButton.Position = UDim2.new(0.075,0,0.74,0)
+SafeModeButton.Position = UDim2.new(0.075, 0, 0.63, 0) -- << Posição ajustada
 SafeModeButton.Parent = Frame
 styleAsPixelButton(SafeModeButton, "SAFE MODE")
 
@@ -354,10 +418,8 @@ local SafeModePart = nil
 
 local function updateSafeModeButton()
     if SafeModeActive then
-        SafeModeButton.Text = "SAFE MODE"
         SafeModeButton.BackgroundColor3 = greenColor
     else
-        SafeModeButton.Text = "SAFE MODE"
         SafeModeButton.BackgroundColor3 = redColor
     end
 end
@@ -387,6 +449,26 @@ local function activateSafeMode()
     updateSafeModeButton()
 end
 SafeModeButton.MouseButton1Click:Connect(activateSafeMode)
+
+--== BOTÃO FLY ==--
+local FlyButton = Instance.new("TextButton")
+FlyButton.Position = UDim2.new(0.075, 0, 0.78, 0) -- << Posição ajustada
+FlyButton.Parent = Frame
+styleAsPixelButton(FlyButton, "FLY")
+
+local function updateFlyButton()
+    if isFlying then
+        FlyButton.BackgroundColor3 = greenColor
+    else
+        FlyButton.BackgroundColor3 = redColor
+    end
+end
+updateFlyButton()
+
+FlyButton.MouseButton1Click:Connect(function()
+    toggleFly()
+    updateFlyButton()
+end)
 
 --== Drag Logic ==--
 Frame.InputBegan:Connect(function(input)
